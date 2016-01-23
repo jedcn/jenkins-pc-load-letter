@@ -1,28 +1,28 @@
 #!/usr/bin/env node
 
 var commander = require('commander'),
-    FaxMachine = require('../lib/fax-machine');
+    PC = require('../lib/pc');
 
 commander
-    .option('--export', 'Comma seperated list of browser names to use.')
-    .option('--import', 'A flag to tell the test runner to look for a cloud configuration to use.')
+    .option('unload', 'Used to export and save jenkins jobs to disk.')
+    .option('load', 'Used to import jobs to jenkins from disk.')
     .option('--ignoreSSL', 'A flag to node to ignore bad SSL certificates')
-    .option('--jenkinsServer [jenkinsUrl]', 'A flag to tell the test runner to use Browserstack')
+    .option('--jenkins [jenkinsUrl]', 'The jenkins server to use https://USER:TOKEN@jenkins.mycompany.com. Optionally get be set with an environment variable JENKINS_SERVER')
     .parse(process.argv);
 
 
-var faxMachine = new FaxMachine({
-    jenkinsServer: commander.jenkinsServer || process.env.JENKINS_SERVER,
+var pc = new PC({
+    jenkinsServer: commander.jenkins || process.env.JENKINS_SERVER,
     ignoreSSL: commander.ignoreSSL,
     files: commander.args
 });
 
-if(commander.import){
-    faxMachine.read();
-} else if (commander.export){
-    faxMachine.send();
+if(commander.unload){
+    pc.unload();
+} else if (commander.load){
+    pc.load();
 } else {
-    console.log('Do you want to import or export jenkins jobs?');
+    console.log('Do you want to load or unload jenkins jobs?');
     process.exit(1);
 }
 
