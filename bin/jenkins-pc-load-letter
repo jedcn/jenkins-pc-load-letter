@@ -1,0 +1,28 @@
+#!/usr/bin/env node
+
+var commander = require('commander'),
+    FaxMachine = require('../lib/fax-machine');
+
+commander
+    .option('--export', 'Comma seperated list of browser names to use.')
+    .option('--import', 'A flag to tell the test runner to look for a cloud configuration to use.')
+    .option('--ignoreSSL', 'A flag to node to ignore bad SSL certificates')
+    .option('--jenkinsServer [jenkinsUrl]', 'A flag to tell the test runner to use Browserstack')
+    .parse(process.argv);
+
+
+var faxMachine = new FaxMachine({
+    jenkinsServer: commander.jenkinsServer || process.env.JENKINS_SERVER,
+    ignoreSSL: commander.ignoreSSL,
+    files: commander.args
+});
+
+if(commander.import){
+    faxMachine.read();
+} else if (commander.export){
+    faxMachine.send();
+} else {
+    console.log('Do you want to import or export jenkins jobs?');
+    process.exit(1);
+}
+

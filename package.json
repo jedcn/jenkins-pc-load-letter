@@ -1,0 +1,33 @@
+{
+  "name": "jenkins-pc-load-letter",
+  "version": "1.0.0",
+  "description": "A small utility for loading jobs into, and unloading jobs from, jenkins",
+  "main": "index.js",
+  "bin": {
+    "jenkins-pc-load-letter": "./bin/jenkins-pc-load-letter"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jedcn/jenkins-pc-load-letter.git"
+  },
+  "keywords": [
+    "jenkins",
+    "configuration"
+  ],
+  "author": "Jed Northridge, Brian Doherty",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jedcn/jenkins-pc-load-letter/issues"
+  },
+  "homepage": "https://github.com/jedcn/jenkins-pc-load-letter#readme",
+  "dependencies": {
+    "bluebird": "^3.1.1",
+    "chalk": "^1.1.1",
+    "commander": "^2.9.0",
+    "glob": "^6.0.4",
+    "jenkins": "^0.13.0"
+  }
+}
