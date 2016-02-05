@@ -7,7 +7,8 @@
     "jenkins-pc-load-letter": "./bin/jenkins-pc-load-letter"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jasmine",
+    "lint": "eslint spec/**/*.js lib/**/*.js bin/**/*.js"
   },
   "repository": {
     "type": "git",
@@ -29,5 +30,12 @@
     "commander": "^2.9.0",
     "glob": "^6.0.4",
     "jenkins": "^0.13.0"
+  },
+  "devDependencies": {
+    "eslint": "^1.10.3",
+    "eslint-config-airbnb": "^5.0.0",
+    "eslint-plugin-react": "^3.16.1",
+    "jasmine": "^2.4.1",
+    "rewire": "^2.5.1"
   }
 }
