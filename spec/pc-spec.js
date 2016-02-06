@@ -37,6 +37,13 @@ describe('Paper Cassette', function () {
     };
   };
 
+  function instrumentPC(mockedJenkinsApi, mockedFsApi) {
+    PC.__set__({
+      jenkins: mockedJenkinsApi,
+      fs: mockedFsApi,
+    });
+  }
+
   beforeEach(function () {
     instrumentPC(mockJenkins, mockFs);
   });
@@ -90,10 +97,3 @@ describe('Paper Cassette', function () {
     });
   });
 });
-
-function instrumentPC(mockedJenkinsApi, mockedFsApi) {
-  PC.__set__({
-    jenkins: mockedJenkinsApi,
-    fs: mockedFsApi,
-  });
-}
