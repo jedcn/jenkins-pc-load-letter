@@ -3,7 +3,6 @@ var PC = rewire('../lib/pc');
 var Promise = require('bluebird');
 
 describe('Paper Cassette', function () {
-
   var mockFs = {
     writeFileAsync: jasmine.createSpy(),
   };
@@ -43,7 +42,6 @@ describe('Paper Cassette', function () {
   });
 
   it('should throw an exception if constructed without the proper options', function () {
-
     expect(function () {
       pc = new PC();
     }).toThrow();
@@ -65,7 +63,6 @@ describe('Paper Cassette', function () {
         jenkinsServer: 'myJenkins.roving.com',
       });
     }).not.toThrow();
-
   });
 
   describe('#unload', function () {
