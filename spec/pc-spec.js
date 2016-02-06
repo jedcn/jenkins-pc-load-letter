@@ -49,6 +49,7 @@ describe('Paper Cassette', function () {
   });
 
   it('should throw an exception if constructed without the proper options', function () {
+    var pc;
     expect(function () {
       pc = new PC();
     }).toThrow();
@@ -69,12 +70,13 @@ describe('Paper Cassette', function () {
         files: '/foo',
         jenkinsServer: 'myJenkins.roving.com',
       });
+      expect(pc).not.toBe(null);
     }).not.toThrow();
   });
 
   describe('#unload', function () {
     it('write all the available jenkins jobs to disk, in the directory specified', function (done) {
-      pc = new PC({
+      var pc = new PC({
         files: '/foo',
         jenkinsServer: 'cactus.roving.com',
       });
