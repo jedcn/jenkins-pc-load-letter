@@ -5,7 +5,7 @@ var Promise = require('bluebird');
 describe('Paper Cassette', function () {
 
   var mockFs = {
-    writeFileAsync: jasmine.createSpy()
+    writeFileAsync: jasmine.createSpy(),
   };
 
   var mockJenkins = function () {
@@ -16,7 +16,7 @@ describe('Paper Cassette', function () {
             return [
               { name: 'Cactus' },
               { name: 'Gondor' },
-              { name: 'Foobar' }
+              { name: 'Foobar' },
             ];
           });
         },
@@ -33,8 +33,8 @@ describe('Paper Cassette', function () {
                 return undefined;
             }
           });
-        }
-      }
+        },
+      },
     };
   };
 
@@ -55,14 +55,14 @@ describe('Paper Cassette', function () {
 
     expect(function () {
       pc = new PC({
-        files: '/foo'
+        files: '/foo',
       });
     }).toThrow();
 
     expect(function () {
       pc = new PC({
         files: '/foo',
-        jenkinsServer: 'myJenkins.roving.com'
+        jenkinsServer: 'myJenkins.roving.com',
       });
     }).not.toThrow();
 
@@ -72,7 +72,7 @@ describe('Paper Cassette', function () {
     it('write all the available jenkins jobs to disk, in the directory specified', function (done) {
       pc = new PC({
         files: '/foo',
-        jenkinsServer: 'cactus.roving.com'
+        jenkinsServer: 'cactus.roving.com',
       });
       expect(mockFs.writeFileAsync).not.toHaveBeenCalled();
       pc.unload().then(function () {
@@ -97,6 +97,6 @@ describe('Paper Cassette', function () {
 function instrumentPC(mockedJenkinsApi, mockedFsApi) {
   PC.__set__({
     jenkins: mockedJenkinsApi,
-    fs: mockedFsApi
+    fs: mockedFsApi,
   });
 }
