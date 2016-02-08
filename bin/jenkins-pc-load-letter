@@ -8,13 +8,15 @@ commander
     .option('load', 'Used to import jobs to jenkins from disk.')
     .option('--ignoreSSL', 'A flag to node to ignore bad SSL certificates')
     .option('--jenkins [jenkinsUrl]', 'The jenkins server to use https://USER:TOKEN@jenkins.mycompany.com. Optionally get be set with an environment variable JENKINS_SERVER')
+    .option('--jobs [jobNames]', 'A regular expression to match against possible job names. A way of filtering which jobs you care about.')
     .parse(process.argv);
 
 
 var pc = new PC({
     jenkinsServer: commander.jenkins || process.env.JENKINS_SERVER,
     ignoreSSL: commander.ignoreSSL,
-    files: commander.args
+    files: commander.args,
+    jobsRegex: commander.jobs
 });
 
 if(commander.unload){
