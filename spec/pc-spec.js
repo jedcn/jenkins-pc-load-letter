@@ -4,7 +4,9 @@ var Promise = require('bluebird');
 
 describe('Paper Cassette', function () {
   var mockFs = {
-    writeFileAsync: jasmine.createSpy(),
+    writeFileAsync: jasmine.createSpy().and.callFake(function () {
+      return true;
+    }),
   };
 
   var mockJenkins = function () {
@@ -45,6 +47,7 @@ describe('Paper Cassette', function () {
   }
 
   beforeEach(function () {
+    mockFs.writeFileAsync.calls.reset();
     instrumentPC(mockJenkins, mockFs);
   });
 
@@ -96,6 +99,56 @@ describe('Paper Cassette', function () {
         );
         done();
       });
+    });
+
+    it('should only save jobs matching the --jobs parameter', function (done) {
+      Promise.try(function () {
+        var pc = new PC({
+          files: '/myJobs',
+          jenkinsServer: 'cactus.roving.com',
+          jobsRegex: 'Cactus',
+        });
+        expect(mockFs.writeFileAsync).not.toHaveBeenCalled();
+        return pc.unload().then(function () {
+          expect(mockFs.writeFileAsync).toHaveBeenCalledWith(
+            '/myJobs/Cactus.xml', '<xml>Cactus</xml>'
+          );
+          expect(mockFs.writeFileAsync).not.toHaveBeenCalledWith(
+            '/myJobs/Gondor.xml', '<xml>Gondor</xml>'
+          );
+        });
+      }).then(function () {
+        var pc = new PC({
+          files: '/myJobs',
+          jenkinsServer: 'cactus.roving.com',
+          jobsRegex: '(Gondor|Foobar)',
+        });
+        mockFs.writeFileAsync.calls.reset();
+        expect(mockFs.writeFileAsync).not.toHaveBeenCalled();
+        return pc.unload().then(function () {
+          expect(mockFs.writeFileAsync).toHaveBeenCalledWith(
+            '/myJobs/Gondor.xml', '<xml>Gondor</xml>'
+          );
+          expect(mockFs.writeFileAsync).toHaveBeenCalledWith(
+            '/myJobs/Foobar.xml', '<xml>Foobar</xml>'
+          );
+          expect(mockFs.writeFileAsync).not.toHaveBeenCalledWith(
+            '/myJobs/Cactus.xml', '<xml>Cactus</xml>'
+          );
+        });
+      }).then(function () {
+        done();
+      });
+    });
+
+    it('should alert the user if no matching jobs are available', function (done) {
+      var pc = new PC({
+        files: '/myJobs',
+        jenkinsServer: 'cactus.roving.com',
+        jobsRegex: 'SmallBets',
+      });
+      expect(pc.unload).toThrow();
+      done();
     });
   });
 });

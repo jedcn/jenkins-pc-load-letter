@@ -1,13 +1,14 @@
 {
   "name": "jenkins-pc-load-letter",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A small utility for loading jobs into, and unloading jobs from, jenkins",
   "main": "index.js",
   "bin": {
     "jenkins-pc-load-letter": "./bin/jenkins-pc-load-letter"
   },
   "scripts": {
-    "test": "jasmine",
+    "test": "npm run lint && npm run units",
+    "units": "jasmine",
     "lint": "eslint spec/**/*.js lib/**/*.js bin/**/*.js"
   },
   "repository": {
