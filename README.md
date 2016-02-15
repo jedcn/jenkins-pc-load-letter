@@ -10,11 +10,11 @@ you use Jenkins, it is vitally important to your every day work.
 
 [jenkins-home]: http://jenkins-ci.org
 
-And so enters pc-load-letter:
+And so enters jenkins-pc-load-letter:
 
-> pc-load-letter is a small utility for loading jobs into jenkins, and
-> unloading jobs from Jenkins. Jobs are saved off as their native
-> format: XML.
+> jenkins-pc-load-letter is a small utility for loading jobs into
+> jenkins, and unloading jobs from Jenkins. Jobs are saved off as
+> their native format: XML.
 
 ## Installation
 
@@ -32,7 +32,7 @@ Imagine that..
 
 You can save this job off as XML with:
 
-    pc-load-letter unload --jenkins https://jenkins.company.com:8080 --job great-job
+    jenkins-pc-load-letter unload --jenkins https://jenkins.company.com:8080 --job great-job
 
 This command will cause a file named "great-job.xml" to come into
 existence that matches the current state of "great-job" on your
@@ -53,7 +53,7 @@ Imagine that..
 You can take the contents of a formerly-saved-off job and load it into
 jenkins with:
 
-    pc-load-letter load --jenkins https://jenkins.company.com:8080 --file great-job.xml
+    jenkins-pc-load-letter load --jenkins https://jenkins.company.com:8080 --file great-job.xml
 
 This command will look for a file named "great-job.xml" and create a
 job named "great-job" on the jenkins instance. It will update this job
