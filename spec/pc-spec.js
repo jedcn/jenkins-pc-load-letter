@@ -3,11 +3,51 @@ var PC = rewire('../lib/pc');
 var Promise = require('bluebird');
 
 describe('Paper Cassette', function () {
+  var mockFiles = {
+    'some/directory/cactus.xml': {
+      contents: '<xml>Cactus</xml>',
+    },
+    'some/diva/falcon.xml': {
+      contents: '<xml>Falcon</xml>',
+    },
+    'some/diva/cbl.xml': {
+      contents: '<xml>CBL</xml>',
+    },
+    'some/diva/directory/blamaste.xml': {
+      contents: '<xml>Blamaste</xml>',
+    },
+    'some/diva/president/oblama.xml': {
+      contents: '<xml>oblama</xml>',
+    },
+    'some/bad-blammajamma.xml': {
+      contents: '<xml>bad-blamma-jamma</xml>',
+    },
+  };
+
   var mockFs = {
-    writeFileAsync: jasmine.createSpy().and.callFake(function () {
+    writeFileAsync: jasmine.createSpy('writeFileAsync').and.callFake(function () {
       return true;
     }),
+    readFileAsync: jasmine.createSpy('readFileAsync').and.callFake(function (path) {
+      return Promise.try(function () {
+        var match = null;
+        var key;
+        for (key in mockFiles) {
+          if (path.indexOf(key) > -1) {
+            match = mockFiles[key].contents;
+            break;
+          }
+        }
+        if (!match) {
+          throw new Error('Cant find that file or something.');
+        }
+        return match;
+      });
+    }),
   };
+
+  var setConfigSpy = jasmine.createSpy('setConfig');
+  var createConfigSpy = jasmine.createSpy('createConfig');
 
   var mockJenkins = function () {
     return {
@@ -21,7 +61,17 @@ describe('Paper Cassette', function () {
             ];
           });
         },
-        config: function (jobName) {
+        config: function (jobName, xml) {
+          // Setting job config
+          if (xml) {
+            setConfigSpy(jobName, xml);
+            return Promise.try(function () {
+              if (jobName === 'buzz') {
+                return 'Error: Cannot feel buzz.';
+              }
+            });
+          // Getting job config
+          }
           return Promise.try(function () {
             switch (jobName) {
               case 'Cactus':
@@ -34,6 +84,10 @@ describe('Paper Cassette', function () {
                 return undefined;
             }
           });
+        },
+        create: function (jobName, xml) {
+          createConfigSpy(jobName, xml);
+          return Promise.resolve();
         },
       },
     };
@@ -48,6 +102,7 @@ describe('Paper Cassette', function () {
 
   beforeEach(function () {
     mockFs.writeFileAsync.calls.reset();
+    setConfigSpy.calls.reset();
     instrumentPC(mockJenkins, mockFs);
   });
 
@@ -150,5 +205,112 @@ describe('Paper Cassette', function () {
       expect(pc.unload).toThrow();
       done();
     });
+  });
+
+  describe('#load', function () {
+    it('it should load all the jobs on disk into jenkins', function (done) {
+      Promise.try(function () {
+        var pc = new PC({
+          files: [
+            'some/directory/cactus.xml',
+            'some/diva/falcon.xml',
+            'some/diva/cbl.xml',
+            'some/diva/directory/blamaste.xml',
+            'some/diva/president/oblama.xml',
+          ],
+          jenkinsServer: 'cactus.roving.com',
+        });
+        expect(mockFs.readFileAsync).not.toHaveBeenCalled();
+        createConfigSpy.calls.reset();
+        expect(createConfigSpy).not.toHaveBeenCalled();
+        return pc.load().then(function () {
+          expect(mockFs.readFileAsync).toHaveBeenCalled();
+          expect(createConfigSpy).toHaveBeenCalledWith(
+            'cactus', '<xml>Cactus</xml>'
+          );
+          expect(createConfigSpy).toHaveBeenCalledWith(
+            'falcon', '<xml>Falcon</xml>'
+          );
+          expect(createConfigSpy).toHaveBeenCalledWith(
+            'cbl', '<xml>CBL</xml>'
+          );
+          expect(createConfigSpy).toHaveBeenCalledWith(
+            'blamaste', '<xml>Blamaste</xml>'
+          );
+          expect(createConfigSpy).toHaveBeenCalledWith(
+            'oblama', '<xml>oblama</xml>'
+          );
+          expect(createConfigSpy).not.toHaveBeenCalledWith(
+            'bad-blammajamma', '<xml>bad-blamma-jamma</xml>'
+          );
+          expect(createConfigSpy).not.toHaveBeenCalledWith(
+            'small-bets', '<xml>small-bets</xml>'
+          );
+        });
+      }).then(function () {
+        var pc = new PC({
+          files: [
+            'some/bad-blammajamma.xml',
+          ],
+          jenkinsServer: 'cactus.roving.com',
+        });
+        createConfigSpy.calls.reset();
+        mockFs.readFileAsync.calls.reset();
+        expect(mockFs.readFileAsync).not.toHaveBeenCalled();
+        expect(createConfigSpy).not.toHaveBeenCalled();
+        return pc.load().then(function () {
+          expect(mockFs.readFileAsync).toHaveBeenCalled();
+          expect(createConfigSpy).not.toHaveBeenCalledWith(
+            'cactus', '<xml>Cactus</xml>'
+          );
+          expect(createConfigSpy).not.toHaveBeenCalledWith(
+            'falcon', '<xml>Falcon</xml>'
+          );
+          expect(createConfigSpy).not.toHaveBeenCalledWith(
+            'cbl', '<xml>CBL</xml>'
+          );
+          expect(createConfigSpy).not.toHaveBeenCalledWith(
+            'blamaste', '<xml>Blamaste</xml>'
+          );
+          expect(createConfigSpy).not.toHaveBeenCalledWith(
+            'oblama', '<xml>oblama</xml>'
+          );
+          expect(createConfigSpy).toHaveBeenCalledWith(
+            'bad-blammajamma', '<xml>bad-blamma-jamma</xml>'
+          );
+          expect(createConfigSpy).not.toHaveBeenCalledWith(
+            'small-bets', '<xml>small-bets</xml>'
+          );
+        });
+      }).then(function () {
+        done();
+      });
+    });
+    it('it should not attempt to import files it cannot read from disk', function (done) {
+      var pc = new PC({
+        files: [
+          '/buzz.foo',
+          '/small-bets',
+          'some/bad-blammajamma.xml',
+        ],
+        jenkinsServer: 'buzz.cactus.windmill',
+      });
+      createConfigSpy.calls.reset();
+      expect(createConfigSpy).not.toHaveBeenCalled();
+      pc.load().then(function () {
+        expect(createConfigSpy).toHaveBeenCalledWith(
+          'bad-blammajamma', '<xml>bad-blamma-jamma</xml>'
+        );
+        expect(createConfigSpy).not.toHaveBeenCalledWith(
+          'buzz', '<xml>buzz</xml>'
+        );
+        expect(createConfigSpy).not.toHaveBeenCalledWith(
+          'small-bets', '<xml>small-bets</xml>'
+        );
+        done();
+      });
+    });
+    // TODO: Another test here that uses gondor / cactus / others as the example.
+    // Testing to make sure it calsl create vs set config
   });
 });
