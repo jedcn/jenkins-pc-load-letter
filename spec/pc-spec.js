@@ -13,6 +13,9 @@ describe('Paper Cassette', function () {
     'some/diva/cbl.xml': {
       contents: '<xml>CBL</xml>',
     },
+    'some/buzz.xml': {
+      contents: '<xml>buzz</xml>',
+    },
     'some/diva/directory/blamaste.xml': {
       contents: '<xml>Blamaste</xml>',
     },
@@ -21,6 +24,9 @@ describe('Paper Cassette', function () {
     },
     'some/bad-blammajamma.xml': {
       contents: '<xml>bad-blamma-jamma</xml>',
+    },
+    'some/guy/named/Gondor.xml': {
+      contents: '<xml>Gondor</xml>',
     },
   };
 
@@ -65,11 +71,7 @@ describe('Paper Cassette', function () {
           // Setting job config
           if (xml) {
             setConfigSpy(jobName, xml);
-            return Promise.try(function () {
-              if (jobName === 'buzz') {
-                return 'Error: Cannot feel buzz.';
-              }
-            });
+            return Promise.resolve();
           // Getting job config
           }
           return Promise.try(function () {
@@ -87,7 +89,11 @@ describe('Paper Cassette', function () {
         },
         create: function (jobName, xml) {
           createConfigSpy(jobName, xml);
-          return Promise.resolve();
+          return Promise.try(function () {
+            if (jobName === 'buzz') {
+              throw new Error('Cannot feel buzz.');
+            }
+          });
         },
       },
     };
@@ -208,7 +214,7 @@ describe('Paper Cassette', function () {
   });
 
   describe('#load', function () {
-    it('it should load all the jobs on disk into jenkins', function (done) {
+    it('should load all the jobs on disk into jenkins', function (done) {
       Promise.try(function () {
         var pc = new PC({
           files: [
@@ -286,7 +292,7 @@ describe('Paper Cassette', function () {
         done();
       });
     });
-    it('it should not attempt to import files it cannot read from disk', function (done) {
+    it('should not attempt to import files it cannot read from disk', function (done) {
       var pc = new PC({
         files: [
           '/buzz.foo',
@@ -310,7 +316,71 @@ describe('Paper Cassette', function () {
         done();
       });
     });
-    // TODO: Another test here that uses gondor / cactus / others as the example.
-    // Testing to make sure it calsl create vs set config
+    it('should create a new job on jenkins if it does not already exist', function (done) {
+      var pc = new PC({
+        files: [
+          'some/bad-blammajamma.xml',
+        ],
+        jenkinsServer: 'buzz.cactus.windmill',
+      });
+      createConfigSpy.calls.reset();
+      setConfigSpy.calls.reset();
+      expect(createConfigSpy).not.toHaveBeenCalled();
+      expect(setConfigSpy).not.toHaveBeenCalled();
+      pc.load().then(function () {
+        expect(createConfigSpy).toHaveBeenCalledWith(
+          'bad-blammajamma', '<xml>bad-blamma-jamma</xml>'
+        );
+        expect(setConfigSpy).not.toHaveBeenCalledWith(
+          'bad-blammajamma', '<xml>bad-blamma-jamma</xml>'
+        );
+        done();
+      });
+    });
+    it('should modify the existing job on jenkins if it exists already', function (done) {
+      var pc = new PC({
+        files: [
+          'some/guy/named/Gondor.xml',
+        ],
+        jenkinsServer: 'buzz.cactus.windmill',
+      });
+      createConfigSpy.calls.reset();
+      setConfigSpy.calls.reset();
+      expect(createConfigSpy).not.toHaveBeenCalled();
+      expect(setConfigSpy).not.toHaveBeenCalled();
+      pc.load().then(function () {
+        expect(setConfigSpy).toHaveBeenCalledWith(
+          'Gondor', '<xml>Gondor</xml>'
+        );
+        expect(createConfigSpy).not.toHaveBeenCalledWith(
+          'Gondor', '<xml>Gondor</xml>'
+        );
+        done();
+      });
+    });
+    it('should handle cases where jenkins throws an error', function (done) {
+      var pc = new PC({
+        files: [
+          'some/buzz.xml',
+        ],
+        jenkinsServer: 'buzz.cactus.windmill',
+      });
+      createConfigSpy.calls.reset();
+      expect(createConfigSpy).not.toHaveBeenCalled();
+      Promise.try(function () {
+        return pc.load().catch(function () {
+          // Catch should never be called if we handle the errors inside of pc
+          expect(false).toBe(true);
+        });
+      }).then(function () {
+        return pc.load().then(function () {
+          expect(createConfigSpy).toHaveBeenCalledWith(
+            'buzz', '<xml>buzz</xml>'
+          );
+        });
+      }).then(function () {
+        done();
+      });
+    });
   });
 });
